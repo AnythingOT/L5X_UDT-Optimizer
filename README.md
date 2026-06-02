@@ -38,6 +38,15 @@ python app.py
 It opens at http://127.0.0.1:5001. 
 
 ---
+## Why it is required
+
+Revamping older codes needed a faster method to make the program more memory efficient and more complaint to standard coding practices. Started with a single UDT python macro, finished with claude to support on full l5x support. 
+
+This concept is extended to 2 more repo's
+ - LLM4UDT [https://github.com/AnythingOT/LLM4UDT]: Using local LLM to generate/Optimize UDT's.
+ - L5X_Lint [https://github.com/AnythingOT/L5X_Lint]: Code validator to verify whether a written ACD file has followed standard coding practice.
+
+---
 
 ## Where this fits
 
