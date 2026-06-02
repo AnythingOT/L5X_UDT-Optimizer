@@ -33,7 +33,9 @@ pip install flask
 python app.py
 ```
 
-It opens at http://127.0.0.1:5001. There's also a packaged executable in redist.
+It opens at http://127.0.0.1:5001. 
+
+.EXE is in dist folder.
 
 ---
 
