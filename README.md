@@ -2,6 +2,8 @@
 
 A small web app that tidies up Allen-Bradley UDTs. Upload either single UDT export `.l5x` or full program `.l5x`, it will group datatypes correctly and also sort tags by alphabetical order within each datatype.
 
+<img width="1835" height="882" alt="image" src="https://github.com/user-attachments/assets/7291c258-ef88-4abc-a7a6-0dae31b2e599" />
+
 ---
 
 ## Output file names
@@ -34,8 +36,6 @@ python app.py
 ```
 
 It opens at http://127.0.0.1:5001. 
-
-.EXE is in dist folder.
 
 ---
 
