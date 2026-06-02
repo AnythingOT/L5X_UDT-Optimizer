@@ -6,7 +6,7 @@ A small web app that tidies up Allen-Bradley UDTs. Upload either single UDT expo
 
 ## Output file names
 
-Optimized files get a prefix so you can tell them apart at a glance:
+Optimized output files get a prefix, but UDT name or program name itself is not changed.
 
 - A single UDT like `MyUDT.L5X` comes back as `OptimizedUDTfile_MyUDT.l5x`.
 - A full program like `PlantProgram.L5X` comes back as `OptimizedProgramfile_UDTsonly_PlantProgram.l5x`. You need to rename this file name before importing else studio5k will throw filename too large fit.
