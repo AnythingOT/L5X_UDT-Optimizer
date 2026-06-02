@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="B322" TargetType="DataType" ContainsContext="true" ExportDate="Wed Jul 16 18:16:42 2025" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="SampleProgram">
+<DataTypes Use="Context">
+<DataType Use="Target" Name="B322" Family="NoFamily" Class="User">
+<Members>
+<Member Name="ZZZZZZZZZZB3220" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B1" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB3220" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B2" DataType="BOOL" Dimension="64" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB3223" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B3" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB3223" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B4" DataType="REAL" Dimension="0" Radix="Float" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="B5" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB3227" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B6" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB3227" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B7" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB3227" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B8" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32211" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B9" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32211" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B10" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32211" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B11" DataType="INT" Dimension="23" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32215" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B12" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32215" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B13" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32215" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B14" DataType="SINT" Dimension="4" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32219" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B15" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32219" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B16" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32219" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B17" DataType="BOOL" Dimension="64" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32223" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B18" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32223" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B19" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32223" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B20" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32223" BitNumber="2" ExternalAccess="Read/Write"/>
+<Member Name="B21" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32223" BitNumber="3" ExternalAccess="Read/Write"/>
+<Member Name="B22" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32223" BitNumber="4" ExternalAccess="Read/Write"/>
+<Member Name="B23" DataType="COUNTER" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32230" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B24" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32230" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B25" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32230" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B26" DataType="STRING" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32234" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B27" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32234" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B28" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32234" BitNumber="1" ExternalAccess="Read/Write"/>
+<Member Name="B29" DataType="REAL" Dimension="12" Radix="Float" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="ZZZZZZZZZZB32238" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="B30" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZB32238" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="B31" DataType="TIMER" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write"/>
+</Members>
+</DataType>
+</DataTypes>
+</Controller>
+</RSLogix5000Content>

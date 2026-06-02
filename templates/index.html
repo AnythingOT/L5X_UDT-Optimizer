@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>L5X UDT Optimizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <style>
+  /* ── TOKENS ─────────────────────────────────────────────────────────── */
+  :root {
+    /* Light theme (default) */
+    --bg:         #F0F2F5;
+    --surface:    #FFFFFF;
+    --panel:      #F7F8FA;
+    --border:     #E2E6ED;
+    --border-mid: #CBD2DC;
+    --accent:     #0057B8;
+    --accent-h:   #0046A0;
+    --accent-sub: #EBF2FF;
+    --success:    #0A7E4A;
+    --success-bg: #EDFBF3;
+    --success-br: #B3EDCF;
+    --warn:       #B45309;
+    --warn-bg:    #FFFBEB;
+    --warn-br:    #FDE68A;
+    --danger:     #B91C1C;
+    --danger-bg:  #FEF2F2;
+    --danger-br:  #FECACA;
+    --text:       #111827;
+    --text-2:     #374151;
+    --muted:      #6B7280;
+    --muted-2:    #9CA3AF;
+    --radius:     8px;
+    --radius-lg:  12px;
+    --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+    --font-ui:    'Inter', system-ui, sans-serif;
+    --font-mono:  'JetBrains Mono', monospace;
+  }
+
+  [data-theme="dark"] {
+    --bg:         #111318;
+    --surface:    #1C1F27;
+    --panel:      #22262F;
+    --border:     #2D3240;
+    --border-mid: #3D4455;
+    --accent:     #3B82F6;
+    --accent-h:   #60A5FA;
+    --accent-sub: #1E2A3F;
+    --success:    #34D399;
+    --success-bg: #0A2E1F;
+    --success-br: #065F46;
+    --warn:       #FBBF24;
+    --warn-bg:    #2D2200;
+    --warn-br:    #78350F;
+    --danger:     #F87171;
+    --danger-bg:  #2D1010;
+    --danger-br:  #7F1D1D;
+    --text:       #F1F3F7;
+    --text-2:     #C9CDD8;
+    --muted:      #8B92A5;
+    --muted-2:    #5C6278;
+    --shadow:     0 1px 3px rgba(0,0,0,.3);
+    --shadow-md:  0 4px 16px rgba(0,0,0,.4);
+  }
+
+  /* ── RESET ───────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: background .2s, color .2s;
+  }
+
+  /* ── TOP BAR ─────────────────────────────────────────────────────────── */
+  .topbar {
+    width: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-inner {
+    width: 92%; max-width: 1400px;
+    margin: 0 auto;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand-badge {
+    background: var(--accent); color: #fff;
+    font-family: var(--font-mono); font-weight: 600;
+    font-size: .7rem; letter-spacing: .08em;
+    padding: .22rem .52rem; border-radius: 4px;
+  }
+  .brand-name {
+    font-size: 1rem; font-weight: 700; letter-spacing: -.01em;
+    color: var(--text);
+  }
+  .brand-name span { color: var(--accent); }
+
+  /* Theme toggle */
+  .theme-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: .38rem .8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--muted);
+    font-family: var(--font-ui); font-size: .8rem; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-icon { font-size: 1rem; }
+
+  /* ── MAIN ────────────────────────────────────────────────────────────── */
+  main {
+    width: 92%; max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+
+  /* Page title */
+  .page-title { margin-bottom: .25rem; }
+  .page-title h1 {
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    font-weight: 700; letter-spacing: -.02em; color: var(--text);
+  }
+  .page-title p { color: var(--muted); font-size: .875rem; margin-top: .2rem; }
+
+  /* ── CARD ────────────────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: .85rem 4%;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .75rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card-header .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+
+  /* ── DROP ZONE ───────────────────────────────────────────────────────── */
+  #drop-zone {
+    margin: 4%;
+    border: 2px dashed var(--border-mid);
+    border-radius: var(--radius-lg);
+    padding: 5% 4%;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  #drop-zone.hover, #drop-zone:focus-within {
+    border-color: var(--accent);
+    background: var(--accent-sub);
+  }
+  #drop-zone.has-file {
+    border-style: solid;
+    border-color: var(--accent);
+    background: var(--accent-sub);
+  }
+  .drop-icon {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    margin-bottom: .6rem; display: block;
+    transition: transform .2s;
+  }
+  #drop-zone.hover .drop-icon { transform: translateY(-4px); }
+  .drop-label {
+    font-size: clamp(.9rem, 1.4vw, 1rem);
+    font-weight: 600; color: var(--text); margin-bottom: .3rem;
+  }
+  .drop-sub {
+    font-size: clamp(.75rem, 1vw, .82rem);
+    color: var(--muted); font-family: var(--font-mono);
+  }
+  #file-input { display: none; }
+  .drop-actions { margin-top: 4%; display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ── BUTTONS ─────────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .55rem 1.2rem;
+    border: none; border-radius: 6px;
+    font-family: var(--font-ui); font-size: .875rem; font-weight: 600;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-outline {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border-mid);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── STATUS / ALERT ──────────────────────────────────────────────────── */
+  .alert {
+    display: flex; align-items: flex-start; gap: .75rem;
+    padding: .85rem 4%;
+    font-size: .85rem;
+    border-top: 1px solid var(--border);
+  }
+  .alert.info    { background: var(--accent-sub); color: var(--accent); }
+  .alert.success { background: var(--success-bg); color: var(--success); border-top-color: var(--success-br); }
+  .alert.error   { background: var(--danger-bg);  color: var(--danger);  border-top-color: var(--danger-br);  }
+  .alert.warn    { background: var(--warn-bg);    color: var(--warn);    border-top-color: var(--warn-br);    }
+  .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+  .alert-text { flex: 1; line-height: 1.5; }
+
+  .spin {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid currentColor; border-top-color: transparent;
+    border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0;
+    margin-top: .15rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── STATUS CARD (single UDT result) ─────────────────────────────────── */
+  #status-card { display: none; }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .status-cell {
+    background: var(--surface);
+    padding: 1rem 4%;
+  }
+  .status-cell .label {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin-bottom: .3rem;
+  }
+  .status-cell .value {
+    font-family: var(--font-mono); font-size: .95rem; font-weight: 600;
+    color: var(--text);
+  }
+  .status-cell .value.accent { color: var(--accent); }
+
+  .download-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem;
+    padding: 1rem 4%;
+  }
+  .dl-info {
+    font-size: .82rem; color: var(--muted);
+  }
+  .dl-info strong {
+    font-family: var(--font-mono); color: var(--accent); font-weight: 600;
+  }
+
+  /* ── PROGRAM LOG (SSE) ───────────────────────────────────────────────── */
+  #program-panel { display: none; }
+
+  .log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .5rem;
+    padding: 1rem 4%;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-title {
+    font-size: .9rem; font-weight: 600; color: var(--text);
+  }
+  .log-counter {
+    font-family: var(--font-mono); font-size: .78rem; color: var(--muted);
+  }
+
+  .log-body {
+    max-height: 55vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-mid) transparent;
+  }
+  .log-body::-webkit-scrollbar { width: 5px; }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+
+  .log-row {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .6rem 4%;
+    border-bottom: 1px solid var(--border);
+    font-size: .83rem;
+    transition: background .12s;
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-row:hover { background: var(--panel); }
+  .log-row.row-done {
+    background: var(--success-bg);
+    border-left: 3px solid var(--success);
+  }
+  .log-row.row-done:hover { background: var(--success-bg); filter: brightness(.97); }
+
+  .log-icon { width: 18px; text-align: center; flex-shrink: 0; }
+  .log-name {
+    font-family: var(--font-mono); font-weight: 600;
+    color: var(--text); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .log-members { font-size: .77rem; color: var(--muted); flex-shrink: 0; }
+  .log-size {
+    font-family: var(--font-mono); font-size: .72rem;
+    color: var(--muted); flex-shrink: 0; min-width: 130px; text-align: right;
+  }
+  .log-size .size-saved { color: var(--success); font-weight: 600; }
+  .log-size .size-same  { color: var(--muted-2); }
+  .log-status  { font-size: .77rem; font-weight: 600; flex-shrink: 0; min-width: 90px; text-align: right; }
+  .log-status.done       { color: var(--success); }
+  .log-status.ok         { color: var(--muted); }
+  .log-status.na         { color: var(--muted-2); font-style: italic; }
+  .log-status.processing { color: var(--accent); }
+  .log-status.error      { color: var(--danger); }
+  .log-status.waiting    { color: var(--muted-2); }
+
+  .prog-bar-wrap {
+    padding: .75rem 4%;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .prog-bar-track {
+    width: 100%; height: 6px;
+    background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .prog-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 3px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── SUMMARY BAR ─────────────────────────────────────────────────────── */
+  .summary-bar {
+    padding: .65rem 4%;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    display: flex; align-items: center; gap: 1.5rem;
+    font-size: .8rem; color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .summary-bar .sum-item { display: flex; align-items: center; gap: .4rem; }
+  .summary-bar .sum-val  { font-weight: 700; font-family: var(--font-mono); color: var(--text); }
+  .summary-bar .sum-saved { color: var(--success); }
+
+  /* ── DOWNLOAD BAR ────────────────────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .status-grid { grid-template-columns: 1fr 1fr; }
+    .log-members { display: none; }
+    .log-size    { display: none; }
+  }
+
+  </style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-badge">L5X</span>
+      <span class="brand-name">UDT <span>Optimizer</span></span>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon" id="theme-icon">🌙</span>
+      <span id="theme-label">Dark mode</span>
+    </button>
+  </div>
+</div>
+
+<main>
+
+  <!-- Page title -->
+  <div class="page-title">
+    <h1>UDT Memory Optimizer</h1>
+    <p>Upload a single UDT or full program L5X — members are sorted and bit-packed for minimum memory footprint.</p>
+  </div>
+
+  <!-- ── Upload Card ── -->
+  <div class="card">
+    <div class="card-header"><span class="dot"></span>Upload L5X File</div>
+
+    <div id="drop-zone" tabindex="0"
+         ondragover="dz.over(event)" ondragleave="dz.leave()" ondrop="dz.drop(event)"
+         onclick="fileInput.click()">
+      <span class="drop-icon" id="drop-icon">📁</span>
+      <p class="drop-label" id="drop-label">Drop your .l5x file here</p>
+      <p class="drop-sub"   id="drop-sub">Single UDT or full controller program</p>
+      <div class="drop-actions">
+        <button class="btn btn-primary" onclick="event.stopPropagation(); fileInput.click()">Browse Files</button>
+      </div>
+    </div>
+    <input type="file" id="file-input" accept=".l5x,.L5X" onchange="onFileChange()"/>
+
+    <!-- Alert bar -->
+    <div class="alert" id="alert-bar" style="display:none">
+      <span class="alert-icon" id="alert-icon"></span>
+      <span class="alert-text" id="alert-text"></span>
+    </div>
+  </div>
+
+  <!-- ── Single UDT Result Card ── -->
+  <div class="card" id="status-card">
+    <div class="card-header"><span class="dot"></span>Parse Result</div>
+    <div class="status-grid" id="status-grid"></div>
+    <div class="download-bar">
+      <span class="dl-info">Ready to Download: <strong id="dl-filename">—</strong></span>
+      <button class="btn btn-primary" id="dl-btn" onclick="downloadSingle()">
+        ↓ Download Optimised L5X
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Full Program SSE Panel ── -->
+  <div class="card" id="program-panel">
+    <div class="card-header"><span class="dot"></span>Optimising Program</div>
+
+    <div class="log-header">
+      <span class="log-title" id="log-title">Processing UDTs…</span>
+      <span class="log-counter" id="log-counter"></span>
+    </div>
+
+    <div class="prog-bar-wrap">
+      <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
+    </div>
+
+    <div class="log-body" id="log-body"></div>
+
+    <div class="summary-bar" id="summary-bar" style="display:none">
+      <span class="sum-item">Optimised: <span class="sum-val" id="sum-done">—</span></span>
+      <span class="sum-item">No Change: <span class="sum-val" id="sum-ok">—</span></span>
+      <span class="sum-item">N/A: <span class="sum-val" id="sum-na">—</span></span>
+      <span class="sum-item">Total saved: <span class="sum-val sum-saved" id="sum-saved">—</span></span>
+    </div>
+
+    <div class="download-bar" style="flex-wrap:wrap; gap:.6rem;">
+      <span class="dl-info">Output: <strong id="prog-dl-filename">OptimizedProgramfile_UDTsonly_…</strong></span>
+      <div style="display:flex; gap:.6rem; margin-left:auto; flex-wrap:wrap;">
+        <button class="btn btn-outline" id="zip-dl-btn" disabled onclick="downloadChangedZip()"
+                title="Download only UDTs where order changed, as individual L5X files in a ZIP">
+          ↓ Changed UDTs ZIP
+        </button>
+        <button class="btn btn-primary" id="prog-dl-btn" disabled onclick="downloadProgram()">
+          ↓ Download Full Program L5X
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ── State ───────────────────────────────────────────────────────────── */
+let selectedFile    = null;
+let downloadToken   = null;
+let zipToken        = null;
+let currentSession  = null;
+let totalUDTs       = 0;
+let doneCount       = 0;
+let sumDone = 0, sumOk = 0, sumNa = 0, sumSaved = 0;
+
+/* ── DOM ─────────────────────────────────────────────────────────────── */
+const fileInput    = document.getElementById('file-input');
+const dropZone     = document.getElementById('drop-zone');
+const dropIcon     = document.getElementById('drop-icon');
+const dropLabel    = document.getElementById('drop-label');
+const dropSub      = document.getElementById('drop-sub');
+const alertBar     = document.getElementById('alert-bar');
+const alertIcon    = document.getElementById('alert-icon');
+const alertText    = document.getElementById('alert-text');
+const statusCard   = document.getElementById('status-card');
+const statusGrid   = document.getElementById('status-grid');
+const dlFilename   = document.getElementById('dl-filename');
+const dlBtn        = document.getElementById('dl-btn');
+const programPanel = document.getElementById('program-panel');
+const logTitle     = document.getElementById('log-title');
+const logCounter   = document.getElementById('log-counter');
+const progBar      = document.getElementById('prog-bar');
+const logBody      = document.getElementById('log-body');
+const progDlBtn    = document.getElementById('prog-dl-btn');
+const zipDlBtn     = document.getElementById('zip-dl-btn');
+const summaryBar   = document.getElementById('summary-bar');
+const sumDoneEl    = document.getElementById('sum-done');
+const sumOkEl      = document.getElementById('sum-ok');
+const sumNaEl      = document.getElementById('sum-na');
+const sumSavedEl   = document.getElementById('sum-saved');
+
+/* ── Theme ───────────────────────────────────────────────────────────── */
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('theme-icon').textContent  = dark ? '☀️' : '🌙';
+  document.getElementById('theme-label').textContent = dark ? 'Light mode' : 'Dark mode';
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  applyTheme(!isDark);
+}
+// Init from localStorage
+applyTheme(localStorage.getItem('theme') === 'dark');
+
+/* ── Drag & Drop ─────────────────────────────────────────────────────── */
+const dz = {
+  over(e)  { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('hover'); },
+  leave()  { dropZone.classList.remove('hover'); },
+  drop(e)  { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('hover');
+              const f = e.dataTransfer.files[0]; if (f) handleFile(f); }
+};
+
+function onFileChange() {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+}
+
+/* ── Alert ───────────────────────────────────────────────────────────── */
+function setAlert(type, icon, text) {
+  alertBar.className   = `alert ${type}`;
+  alertBar.style.display = 'flex';
+  alertIcon.innerHTML  = '';
+  if (icon === 'spin') {
+    const s = document.createElement('span');
+    s.className = 'spin'; alertIcon.appendChild(s);
+  } else {
+    alertIcon.textContent = icon;
+  }
+  alertText.textContent = text;
+}
+function hideAlert() { alertBar.style.display = 'none'; }
+
+/* ── Handle file selection ───────────────────────────────────────────── */
+function handleFile(file) {
+  if (!file.name.toLowerCase().endsWith('.l5x')) {
+    setAlert('error', '✖', 'Only .l5x files are supported.');
+    return;
+  }
+  selectedFile = file;
+  downloadToken = null;
+
+  // Update drop zone
+  dropZone.classList.add('has-file');
+  dropIcon.textContent  = '📄';
+  dropLabel.textContent = file.name;
+  dropSub.textContent   = `${(file.size / 1024).toFixed(1)} KB`;
+
+  // Hide old results
+  statusCard.style.display   = 'none';
+  programPanel.style.display = 'none';
+
+  // Parse
+  setAlert('info', 'spin', `Parsing ${file.name}…`);
+  const fd = new FormData();
+  fd.append('file', file);
+
+  fetch('/preview', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) { setAlert('error', '✖', data.error); return; }
+
+      if (data.l5x_type === 'single_udt') {
+        showSingleResult(data);
+      } else {
+        startProgramOptimize(data);
+      }
+    })
+    .catch(err => setAlert('error', '✖', 'Network error: ' + err.message));
+}
+
+/* ── Single UDT result ───────────────────────────────────────────────── */
+function showSingleResult(data) {
+  setAlert('success', '✔', `Parsed "${data.udt_name}" — ${data.member_count} members ready to optimise.`);
+
+  const sizeBefore = data.size_before || 0;
+  statusGrid.innerHTML = cell('UDT Name',   data.udt_name, true)
+    + cell('Members',     data.member_count)
+    + cell('File Type',   'Single UDT')
+    + cell('Nested UDTs', data.nested_udts.length)
+    + (sizeBefore > 0 ? '<div id="size-cells" style="display:contents">' + cell('Est. Size', sizeBefore + ' B') + '</div>' : '');
+
+  dlFilename.textContent = data.output_filename || `OptimizedUDTfile_${data.udt_name}.l5x`;
+  dlBtn.disabled         = false;
+  statusCard.style.display = 'block';
+  setTimeout(() => statusCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+function cell(label, value, accent = false) {
+  return `<div class="status-cell">
+    <div class="label">${label}</div>
+    <div class="value${accent ? ' accent' : ''}">${value}</div>
+  </div>`;
+}
+
+function updateSingleSizeGrid(sizeBefore, sizeAfter, optFlag) {
+  const saved = Math.max(0, sizeBefore - sizeAfter);
+  const savedHtml = saved > 0
+    ? cell('Bytes Saved', '<span style="color:var(--success);font-weight:700">-' + saved + ' B</span>', true)
+    : cell('Bytes Saved', '0 B');
+  const html = '<div id="size-cells" style="display:contents">'
+    + cell('Est. Size Before', sizeBefore + ' B')
+    + cell('Est. Size After',  sizeAfter  + ' B')
+    + savedHtml
+    + '</div>';
+  const existing = document.getElementById('size-cells');
+  if (existing) existing.outerHTML = html;
+  else statusGrid.insertAdjacentHTML('beforeend', html);
+}
+
+/* ── Single UDT download ─────────────────────────────────────────────── */
+function downloadSingle() {
+  if (!selectedFile) return;
+  dlBtn.disabled    = true;
+  dlBtn.textContent = '⏳ Optimising…';
+  setAlert('info', 'spin', 'Optimising and generating output…');
+
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+
+  let optHeader = null, sizeBefore = 0, sizeAfter = 0;
+
+  fetch('/upload_single', { method: 'POST', body: fd })
+    .then(r => {
+      if (!r.ok) return r.json().then(j => {
+        const optNeeded = j.optimization_needed;
+        let msg = j.error || 'Optimisation failed.';
+        if (optNeeded === null) {
+          const types = (j.skipped_types || []).join(', ');
+          msg = `N/A — All members use types not found in this file` +
+                (types ? `: ${types}` : '') +
+                `. Upload the full compiled program L5X to resolve nested UDTs.`;
+        }
+        // Show size even on error/N/A
+        if (j.size_before) updateSingleSizeGrid(j.size_before, j.size_after, optNeeded);
+        throw new Error(msg);
+      });
+      optHeader  = r.headers.get('X-Optimization-Needed');
+      sizeBefore = parseInt(r.headers.get('X-Size-Before') || '0', 10);
+      sizeAfter  = parseInt(r.headers.get('X-Size-After')  || '0', 10);
+      const disp = r.headers.get('Content-Disposition') || '';
+      let name   = dlFilename.textContent || 'OptimizedUDTfile.l5x';
+      const m    = disp.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (m && m[1]) name = m[1].replace(/['"]/g, '');
+      return r.blob().then(b => ({ blob: b, name }));
+    })
+    .then(({ blob, name }) => {
+      triggerDownload(blob, name);
+      updateSingleSizeGrid(sizeBefore, sizeAfter, optHeader);
+      if (optHeader === 'false') {
+        setAlert('success', '✔', `Already optimal — no changes needed. Downloaded "${name}".`);
+      } else if (optHeader === 'na') {
+        setAlert('warn', '⚠', `N/A — Downloaded "${name}" (unknown member types skipped).`);
+      } else {
+        const saved = sizeBefore - sizeAfter;
+        const saveTxt = saved > 0 ? ` — saved ${saved} B` : '';
+        setAlert('success', '✔', `Optimised and downloaded "${name}"${saveTxt}.`);
+      }
+    })
+    .catch(err => setAlert('error', '✖', err.message))
+    .finally(() => { dlBtn.disabled = false; dlBtn.textContent = '↓ Download Optimised L5X'; });
+}
+
+function updateSingleSizeGrid(sizeBefore, sizeAfter, optFlag) {
+  const saved   = Math.max(0, sizeBefore - sizeAfter);
+  const sizeVal = optFlag === 'true' && saved > 0
+    ? `${sizeBefore} → ${sizeAfter} B <span style="color:var(--success);font-weight:700">−${saved} B</span>`
+    : `${sizeBefore} B`;
+  // Append/replace size cells in status grid
+  const existing = document.getElementById('size-cells');
+  const html = `<div id="size-cells" style="display:contents">
+    ${cell('Est. Size Before', sizeBefore + ' B')}
+    ${cell('Est. Size After',  sizeAfter  + ' B')}
+    ${saved > 0 ? cell('Bytes Saved', saved + ' B', true) : ''}
+  </div>`;
+  if (existing) existing.outerHTML = html;
+  else statusGrid.insertAdjacentHTML('beforeend', html);
+}
+
+/* ── Full program SSE flow ───────────────────────────────────────────── */
+function startProgramOptimize(previewData) {
+  setAlert('info', 'spin', `Full program detected — ${previewData.udt_count} UDTs found. Starting optimisation…`);
+
+  // Stage file upload to get session_id
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+
+  fetch('/upload_program', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) { setAlert('error', '✖', data.error); return; }
+      currentSession = data.session_id;
+      openSSEStream(data.session_id, previewData);
+    })
+    .catch(err => setAlert('error', '✖', 'Upload error: ' + err.message));
+}
+
+function openSSEStream(sessionId, previewData) {
+  totalUDTs  = previewData.udt_count;
+  doneCount  = 0;
+  sumDone = 0; sumOk = 0; sumNa = 0; sumSaved = 0;
+  downloadToken = null;
+  zipToken      = null;
+
+  logTitle.textContent    = `Optimising ${totalUDTs} UDT${totalUDTs !== 1 ? 's' : ''}`;
+  logCounter.textContent  = `0 / ${totalUDTs}`;
+  progBar.style.width     = '0%';
+  logBody.innerHTML       = '';
+  progDlBtn.disabled      = true;
+  zipDlBtn.disabled       = true;
+  summaryBar.style.display = 'none';
+  programPanel.style.display = 'block';
+
+  const progDlFilename = document.getElementById('prog-dl-filename');
+  if (previewData.output_filename) progDlFilename.textContent = previewData.output_filename;
+
+  previewData.udts.forEach(u => addLogRow(u.name, u.member_count, 'waiting', u.size_before || 0, 0, [], [], ''));
+
+  const es = new EventSource(`/stream/${sessionId}`);
+
+  es.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'start') {
+      setAlert('info', 'spin', `Processing ${msg.total} UDTs…`);
+    }
+
+    else if (msg.type === 'progress') {
+      const terminal = ['done', 'ok', 'na', 'error'];
+      updateLogRow(msg.name, msg.member_count, msg.status,
+                   msg.size_before || 0, msg.size_after || 0,
+                   msg.skipped_types || [], msg.aoi_members || [], msg.error || '');
+      if (terminal.includes(msg.status)) {
+        doneCount++;
+        logCounter.textContent = `${doneCount} / ${totalUDTs}`;
+        progBar.style.width = `${Math.round((doneCount / totalUDTs) * 100)}%`;
+        // Update summary counters
+        if (msg.status === 'done') { sumDone++; sumSaved += Math.max(0, (msg.size_before||0) - (msg.size_after||0)); }
+        else if (msg.status === 'ok') sumOk++;
+        else if (msg.status === 'na') sumNa++;
+        updateSummaryBar();
+      }
+    }
+
+    else if (msg.type === 'done') {
+      es.close();
+      downloadToken = msg.token;
+      zipToken      = msg.zip_token || null;
+      progDlBtn.disabled = false;
+      const changedCount = msg.changed || 0;
+      if (zipToken && changedCount > 0) {
+        zipDlBtn.disabled = false;
+        zipDlBtn.textContent = `↓ Changed UDTs ZIP (${changedCount})`;
+      }
+      progBar.style.width = '100%';
+      if (msg.filename) progDlFilename.textContent = msg.filename;
+      if (msg.total_saved !== undefined) { sumSaved = msg.total_saved; updateSummaryBar(); }
+      summaryBar.style.display = 'flex';
+      const savedTxt = sumSaved > 0 ? ` — ${sumSaved} B saved` : '';
+      setAlert('success', '✔',
+        `Complete — ${sumDone} optimised, ${sumOk} already optimal, ${sumNa} N/A${savedTxt}.`);
+      logTitle.textContent   = `Complete — ${sumDone}/${totalUDTs} optimised`;
+      logCounter.textContent = `${totalUDTs} / ${totalUDTs}`;
+    }
+
+    else if (msg.type === 'error') {
+      es.close();
+      setAlert('error', '✖', msg.message || 'Optimisation failed.');
+    }
+  };
+
+  es.onerror = () => { es.close(); setAlert('error', '✖', 'Connection lost during optimisation.'); };
+}
+
+function updateSummaryBar() {
+  sumDoneEl.textContent  = sumDone;
+  sumOkEl.textContent    = sumOk;
+  sumNaEl.textContent    = sumNa;
+  sumSavedEl.textContent = sumSaved > 0 ? `${sumSaved} B` : '0 B';
+  summaryBar.style.display = 'flex';
+}
+
+/* ── Log row helpers ─────────────────────────────────────────────────── */
+function rowId(name) { return 'row-' + name.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+function addLogRow(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg) {
+  const id  = rowId(name);
+  const div = document.createElement('div');
+  div.className = 'log-row' + (status === 'done' ? ' row-done' : '');
+  div.id = id;
+  div.innerHTML = logRowHTML(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg);
+  logBody.appendChild(div);
+}
+
+function updateLogRow(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg) {
+  const el = document.getElementById(rowId(name));
+  if (el) {
+    el.className = 'log-row' + (status === 'done' ? ' row-done' : '');
+    el.innerHTML = logRowHTML(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg);
+    if (status === 'processing') el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    addLogRow(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg);
+  }
+}
+
+function logRowHTML(name, memberCount, status, sizeBefore, sizeAfter, skippedTypes, aoiMembers, errorMsg) {
+  const icons = { done:'✔', ok:'–', na:'○', processing:'', error:'✖', waiting:'○' };
+  const labels = { done:'Done', ok:'No Change', na:'N/A', processing:'Processing…', error:'Error', waiting:'Waiting' };
+
+  const spinner = status === 'processing'
+    ? '<span class="spin" style="width:13px;height:13px;border-width:1.5px"></span>'
+    : `<span>${icons[status] || '○'}</span>`;
+
+  // Size column
+  let sizeHtml = '';
+  if (status === 'waiting' || status === 'processing') {
+    sizeHtml = sizeBefore > 0
+      ? `<span class="log-size size-same">${sizeBefore} B</span>`
+      : `<span class="log-size size-same">—</span>`;
+  } else if (status === 'done' && sizeBefore !== sizeAfter) {
+    const saved = sizeBefore - sizeAfter;
+    sizeHtml = `<span class="log-size"><span class="size-same">${sizeBefore}→${sizeAfter} B</span> <span class="size-saved">−${saved} B</span></span>`;
+  } else if (sizeBefore > 0) {
+    sizeHtml = `<span class="log-size size-same">${sizeBefore} B</span>`;
+  } else {
+    sizeHtml = `<span class="log-size size-same">—</span>`;
+  }
+
+  // Tooltip for na / error / aoi info
+  let tooltip = '';
+  if (status === 'na' && skippedTypes && skippedTypes.length) {
+    tooltip = ` title="Unknown types (not in this file): ${skippedTypes.join(', ')}"`;
+  } else if (status === 'error' && errorMsg) {
+    tooltip = ` title="${errorMsg.replace(/"/g, '&quot;')}"`;
+  }
+  // AOI badge indicator
+  const aoiBadge = (aoiMembers && aoiMembers.length > 0 && (status === 'done' || status === 'ok'))
+    ? `<span style="font-size:.68rem;font-weight:600;padding:.1rem .35rem;border-radius:3px;background:var(--accent-sub);color:var(--accent);border:1px solid var(--accent);margin-left:.4rem" title="AOI members carried through: ${aoiMembers.join(', ')}">AOI</span>`
+    : '';
+
+  return `
+    <span class="log-icon">${spinner}</span>
+    <span class="log-name" title="${name}">${name}${aoiBadge}</span>
+    <span class="log-members">${memberCount} members</span>
+    ${sizeHtml}
+    <span class="log-status ${status}"${tooltip}>${labels[status] || status}</span>`;
+}
+
+/* ── Program download ────────────────────────────────────────────────── */
+function downloadProgram() {
+  if (!downloadToken) return;
+  window.location.href = `/download/${downloadToken}`;
+}
+
+function downloadChangedZip() {
+  if (!zipToken) return;
+  window.location.href = `/download_zip/${zipToken}`;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────── */
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
