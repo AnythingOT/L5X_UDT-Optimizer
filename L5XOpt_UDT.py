@@ -87,9 +87,15 @@ def _estimate_aoi_size(aoi_element) -> int:
 
 def _estimate_udt_size(udt: dict, registry: dict, aoi_registry: dict = None) -> int:
     """
-    Rockwell-accurate byte-size estimate (verified against Studio 5000).
+    Approximate UDT byte-size estimate using a simplified Logix layout model.
 
-    Layout rules:
+    This is a heuristic for reporting relative before/after size, NOT a
+    guaranteed match to Studio 5000. Known approximations: custom string types
+    (e.g. STR0016) are not modelled and fall back to a small default; nested-UDT
+    alignment is capped at 4 bytes, so types containing 8-byte members
+    (LINT/LREAL) may be under-aligned. Treat the reported bytes as indicative.
+
+    Layout rules used:
     - Consecutive BIT members → packed into SINT(s), SINT block 4B-aligned.
     - BOOL[N] arrays → stored as DINT array (N/32 × 4B), 4B-aligned.
     - AOI instances → sized from their parameter list.
@@ -603,9 +609,10 @@ def optimize_and_regenerate_udt(udt_definition: dict, all_udts: dict = None,
     udt_name = udt_definition["name"]
     tags     = []
 
-    skipped_type_set:    set  = set()
-    skipped_member_list: list = []
+    skipped_type_set:    set  = set()   # unresolved types — reported, not silently dropped
+    skipped_member_list: list = []      # members carrying an unresolved type
     aoi_member_list:     list = []
+    optimizable_count    = 0            # members with a resolvable (native/UDT/AOI) type
 
     for m in udt_definition.get("members", []):
         mname = m.get("name", "")
@@ -623,15 +630,24 @@ def optimize_and_regenerate_udt(udt_definition: dict, all_udts: dict = None,
         is_native    = base_type in SUPPORTED_TYPES
         is_known_udt = raw_type in all_udts
         is_aoi       = raw_type in aoi_registry
+        is_unknown   = (not is_native) and (not is_known_udt) and (not is_aoi)
 
-        if not is_native and not is_known_udt and not is_aoi:
+        if is_unknown:
+            # Unresolved type. Record it for reporting, but DO NOT drop the
+            # member — deleting it would silently corrupt the user's UDT. We
+            # carry it through unchanged; the member keeps its place and the
+            # size estimate uses a safe fallback. (If EVERY member is unknown
+            # the UDT is reported N/A below and no file is produced, so nothing
+            # is ever silently lost.)
             skipped_type_set.add(raw_type)
             skipped_member_list.append(mname)
             logging.warning(
-                f"  Skipping unknown type '{raw_type}' on member '{mname}'"
-                f" — not found in this L5X (may be in the full program file)"
+                f"  Carrying unresolved type '{raw_type}' on member '{mname}' "
+                f"through unchanged — not found in this L5X (may be in the full "
+                f"program file)."
             )
-            continue
+        else:
+            optimizable_count += 1
 
         if is_aoi:
             aoi_member_list.append(mname)
@@ -639,7 +655,8 @@ def optimize_and_regenerate_udt(udt_definition: dict, all_udts: dict = None,
                 f"  Carrying AOI member '{mname}' (type '{raw_type}') through unchanged."
             )
 
-        if (is_known_udt or is_aoi) and not is_native:
+        if not is_native:
+            # Preserve the original type name for UDTs, AOIs and unknown types.
             base_type = raw_type
 
         dimension = m.get("dimension", 0)
@@ -659,7 +676,7 @@ def optimize_and_regenerate_udt(udt_definition: dict, all_udts: dict = None,
 
     if skipped_types_sorted:
         logging.warning(
-            f"  [{udt_name}] Unknown types (alphabetical): "
+            f"  [{udt_name}] Unresolved types carried through (alphabetical): "
             + ", ".join(skipped_types_sorted)
         )
     if aoi_members_sorted:
@@ -668,7 +685,11 @@ def optimize_and_regenerate_udt(udt_definition: dict, all_udts: dict = None,
             + ", ".join(aoi_members_sorted)
         )
 
-    if not tags:
+    # N/A only when NOTHING is resolvable (every member is an unknown type) or
+    # there are no members at all. In that case we produce no file and tell the
+    # user to upload the full program — safe, because no partial output that
+    # could be missing a member is ever created.
+    if not tags or optimizable_count == 0:
         size_na = _estimate_udt_size(udt_definition, udt_size_registry, aoi_registry)
         return {
             "success":             False,

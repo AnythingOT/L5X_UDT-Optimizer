@@ -178,13 +178,17 @@ def generate_udt_l5x_from_tags(data_dict: dict, controller_name: str = "Controll
             is_native = base_upper in SUPPORTED_TYPES
             is_nested = (not is_native) and (base_raw in udt_registry)
             is_aoi    = (not is_native) and (not is_nested) and (base_raw in aoi_registry)
-
-            if not is_native and not is_nested and not is_aoi:
-                continue
+            # An unresolved type (not native, not a known UDT, not an AOI) is most
+            # likely a structured type defined elsewhere (e.g. a library AOI/UDT
+            # not in this export). We cannot optimise around it, but dropping it
+            # would silently delete the user's field, so we carry it through.
+            is_unknown = (not is_native) and (not is_nested) and (not is_aoi)
 
             base_type = base_upper if is_native else base_raw
 
-            # Rockwell BOOL array: dimension must be multiple of 32
+            # Rockwell BOOL array: dimension must be a multiple of 32. An invalid
+            # BOOL[N] cannot be represented in L5X, so it is skipped (only fires
+            # on already-malformed input Studio 5000 would itself reject).
             if base_type == "BOOL" and dimension > 0 and dimension % 32 != 0:
                 continue
 
@@ -199,7 +203,8 @@ def generate_udt_l5x_from_tags(data_dict: dict, controller_name: str = "Controll
                 "description":     str(tag.get("description", name)),
                 "external_access": tag.get("external_access", "Read/Write"),
                 "hidden":          tag.get("hidden", False),
-                "is_nested_udt":   is_nested or is_aoi,
+                # NullType radix for any structured/complex/unknown type.
+                "is_nested_udt":   is_nested or is_aoi or is_unknown,
                 "is_aoi":          is_aoi,
             })
 
