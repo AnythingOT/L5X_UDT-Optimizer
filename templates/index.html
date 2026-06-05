@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>L5X UDT Optimizer</title>
+  <link rel="icon" type="image/x-icon" href="/static/AnyOT.ico"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
@@ -96,17 +97,6 @@
   .brand {
     display: flex; align-items: center; gap: 10px;
   }
-  .brand-badge {
-    background: var(--accent); color: #fff;
-    font-family: var(--font-mono); font-weight: 600;
-    font-size: .7rem; letter-spacing: .08em;
-    padding: .22rem .52rem; border-radius: 4px;
-  }
-  .brand-name {
-    font-size: 1rem; font-weight: 700; letter-spacing: -.01em;
-    color: var(--text);
-  }
-  .brand-name span { color: var(--accent); }
 
   /* Theme toggle */
   .theme-btn {
@@ -133,6 +123,14 @@
 
   /* Page title */
   .page-title { margin-bottom: .25rem; }
+  .brand-mark {
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -.02em;
+    color: var(--text);          /* follows the active theme */
+    line-height: 1;
+  }
+  .brand-mark span { color: var(--accent); }   /* accent flips with theme too */
   .page-title h1 {
     font-size: clamp(1.4rem, 3vw, 1.9rem);
     font-weight: 700; letter-spacing: -.02em; color: var(--text);
@@ -382,8 +380,7 @@
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-badge">L5X</span>
-      <span class="brand-name">UDT <span>Optimizer</span></span>
+      <span class="brand-mark">Anything<span>OT</span></span>
     </div>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
       <span class="theme-icon" id="theme-icon">🌙</span>

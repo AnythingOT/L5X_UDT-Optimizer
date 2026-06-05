@@ -15,7 +15,10 @@ def resource_path(rel):
     except: base = os.path.abspath(".")
     return os.path.join(base, rel)
 
-app = Flask(__name__, template_folder=resource_path("templates"))
+app = Flask(__name__,
+            template_folder=resource_path("templates"),
+            static_folder=resource_path("static"),
+            static_url_path="/static")
 _download_store: dict = {}
 
 def sanitize_filename(name):
